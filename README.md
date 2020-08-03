@@ -1,57 +1,59 @@
-# Project Name
+---
+page_type: sample
+languages:
+- csharp
+products:
+- azure
+- azure-functions
+- dotnet-core
+description: "Using MediaInfo to analyze files in Azure Storage"
+---
+# Overview
 
-(short, 1-3 sentenced, description of the project)
+It is common in the media space to want to determine the characteristics of a media file.  In a local environment, a commonly used tool is [MediaInfoLib](https://github.com/MediaArea/MediaInfoLib) in the form of the executable program MediaInfo.
 
-## Features
+> MediaInfo(Lib) is a convenient unified display of the most relevant technical and tag data for video and audio files.
 
-This project framework provides the following features:
+It becomes a bit more difficult to get this metadata from files in cloud storage.  This project provides both an Azure Function and a Console App, both using the cross-platform .NetCore, to retrieve a report on a file stored in Azure Blob Storage.  The console app also demonstrates how to upload a demo file.
 
-* Feature 1
-* Feature 2
-* ...
+## About the Software Components
 
-## Getting Started
+The project has two simple libraries, both of which attempt to use [SOLID design principles](https://en.wikipedia.org/wiki/SOLID) and [Clean Architecture](http://cleancoder.com) in general.  For brevity and simplicity, these are not canonical examples of either.
 
-### Prerequisites
+![Software Component Diagram](./docs/img/components.overview.drawio.png)
 
-(ideally very short, if any)
+## Storage Interactions
 
-- OS
-- Library version
-- ...
+The `Storage.Helper` library provides three services:
 
-### Installation
+1. [Management](./src/Storage.Helper/IAzureStorageManagement.cs): `GetAccountKey`
+2. [Operations](./src/Storage.Helper/IAzureStorageOperations.cs): `BlobCopyAsync, BlobUploadAsync, GetSasUrlAsync, BlobExistsAsync, GetBlobContentLengthAsync`
+3. [Read Byte-Range Operations](./src/Storage.Helper/IAzureStorageReadByteRangeOperations.cs): `DownloadHttpRangeAsync, GetOrDownloadContentAsync`
 
-(ideally very short)
+It is this latter service which is used in [`IMediaInfoReportService`](./src/Sample.MediaInfo.Core/IMediaInfoReportService.cs), to only read those bytes required by the MediaInfo library to extract the metadata.
 
-- npm install [package name]
-- mvn install
-- ...
+## Authentication and Authorization
 
-### Quickstart
-(Add steps to get up and running quickly)
+The [`ServiceCollectionExtensions`](./src/Storage.Helper/ServiceCollectionExtensions.cs) in `Storage.Helper` include both Azure Fluent Management and Azure TokenCredential to set up the auth for the project's services.
 
-1. git clone [repository clone url]
-2. cd [respository name]
-3. ...
+When deployed to Azure as a Function App, with system assigned managed identity enabled, the web-host will provide the required credentials for both IAzure and TokenCredential objects; which are injected into the service container and used in the implementations.
+This managed service principal must have appropriate role based access control to the storage accounts it needs to access via the code sample, and access to the media services resource.
 
+The following are needed to access storage:
 
-## Demo
+- Storage Blob Data Contributor
+- Reader and Data Access
 
-A demo app is included to show how to use the project.
+Run commands from a shell.azure.com instance, or a bash shell with the Azure CLI tooling, to permit the application.
 
-To run the demo, follow these steps:
+Follow [this detailed example on how to add these roles](./docs/AddRoles.md).
 
-(Add steps to start up the demo)
+## Azure Function application settings
 
-1.
-2.
-3.
+On your deployed function app instance, set:
 
-## Resources
+- **AZURE_TENANT_ID**
+- **AZURE_SUBSCRIPTION_ID**
 
-(Any additional resources or related projects)
-
-- Link to supporting information
-- Link to similar sample
-- ...
+Create a local.settings.json file (for Azure Functions) or a appsettings.json file (for the console app) and set the above to test locally.
+These will allow the local user to log in interactively and use their identity for Azure operations, ensure they have sufficient privilege (same as the managed identity).
