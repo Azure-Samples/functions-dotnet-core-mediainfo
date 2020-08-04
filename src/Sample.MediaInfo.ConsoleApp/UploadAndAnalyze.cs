@@ -47,11 +47,11 @@ namespace Sample.MediaInfo.ConsoleApp
                 throw new ArgumentNullException(nameof(sourcePath));
             }
 
-            if (!File.Exists(sourcePath))
+            var localFileExists = File.Exists(sourcePath);
+            if (!localFileExists)
             {
-                var msg = $"Attempted to use nonexistent file: {sourcePath} as input.";
+                var msg = $"Non-existent local file: {sourcePath} as '{nameof(sourcePath)}'.  A report on an existing remote file will be attempted.";
                 _logger.LogError(msg);
-                throw new ArgumentException(msg, nameof(container));
             }
 
             if (string.IsNullOrEmpty(Path.GetFileName(sourcePath)))
@@ -79,11 +79,13 @@ namespace Sample.MediaInfo.ConsoleApp
                 throw new ArgumentNullException(nameof(container));
             }
 
-            var containerUri = new Uri($"https://{accountName}.blob.core.windows.net/{container}");
-            _ = await _azureStorageOperations.ContainerCreateIfNotExistsAsync(containerUri).ConfigureAwait(false);
-
             var blobUri = new Uri($"https://{accountName}.blob.core.windows.net/{container}/{Path.GetFileName(sourcePath)}");
-            _ = await _azureStorageOperations.BlobUploadAsync(sourcePath, blobUri).ConfigureAwait(false);
+            if (localFileExists)
+            {
+                var containerUri = new Uri($"https://{accountName}.blob.core.windows.net/{container}");
+                _ = await _azureStorageOperations.ContainerCreateIfNotExistsAsync(containerUri).ConfigureAwait(false);
+                _ = await _azureStorageOperations.BlobUploadAsync(sourcePath, blobUri).ConfigureAwait(false);
+            }
 
             var report = await _mediaInfoReportService.GetMediaInfoCompleteInformForUriAsync(blobUri).ConfigureAwait(false);
 
