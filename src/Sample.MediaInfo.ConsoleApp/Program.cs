@@ -15,20 +15,22 @@ namespace Sample.MediaInfo.ConsoleApp
     internal class Program
     {
         /// <summary>
-        /// Main.
+        /// Performs an upload and a remote analysis of the sample media file.
         /// </summary>
         /// <returns>.</returns>
         internal static async Task Main()
         {
-            // Setup
+            // Setup DI
             ServiceCollection serviceCollection = new ServiceCollection();
             ConfigureServices(serviceCollection);
             var serviceProvider = serviceCollection.BuildServiceProvider();
             var uploadAndAnalyzeService = serviceProvider.GetService<IUploadAndAnalyze>();
 
-            var sourcePath = "./media/bbb.mp4";
-            var accountName = "youraccount";
-            var container = "test";
+            // Get values
+            var configuration = serviceProvider.GetService<IConfiguration>();
+            var sourcePath = configuration.GetValue<string>("sourcePath") ?? throw new Exception("'sourcePath' app setting is required.");
+            var accountName = configuration.GetValue<string>("accountName") ?? throw new Exception("'accountName' app setting is required.");
+            var container = configuration.GetValue<string>("container") ?? throw new Exception("'container' app setting is required.");
 
             // Run
             JObject report = null;
