@@ -6,6 +6,7 @@ products:
 - azure
 - azure-functions
 - dotnet-core
+- azure-media-services
 description: "Using MediaInfo to analyze files in Azure Storage"
 ---
 # Overview
