@@ -5,11 +5,17 @@
   "parameters": {
 
     "appname": {
-      "type": "string"
+      "type": "string",
+      "metadata": {
+        "description" :  "Name of the application"
+      }
     },
     "location": {
       "type": "string",
-      "defaultValue": "[resourceGroup().location]"
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description":  "Region to deploy your function to.  By default it is the same as your resource group."
+      }
     },
     "sku": {
       "type": "string",
@@ -21,7 +27,7 @@
         "B3",
         "S1"
       ],
-      "defaultValue": "S1",
+      "defaultValue": "F1",
       "metadata": {
         "description": "The pricing tier for the hosting plan."
       }
