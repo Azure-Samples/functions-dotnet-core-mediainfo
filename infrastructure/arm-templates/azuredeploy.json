@@ -32,9 +32,9 @@
         "description": "The pricing tier for the hosting plan."
       }
     },
-    "dataStorageAccountName": {
+    "mediaStorageAccountName": {
       "type": "string",
-      "defaultValue": "datastorage"
+      "defaultValue": "mediastorage"
     },
     "repoURL": {
       "type": "string",
@@ -61,7 +61,7 @@
 
     "appInsightsName": "[take(concat('appi-', variables('uniqueName')), 255)]",
 
-    "storageAccountName": "[toLower(take(concat('std', parameters('dataStorageAccountName') ,variables('uniqueName')), 24))]",
+    "storageAccountName": "[toLower(take(concat('st', parameters('mediaStorageAccountName') ,variables('uniqueName')), 24))]",
 
     "readerAndDataAccessRoleId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'c12c1c16-33a1-487b-954d-41c89c60f349')]",
     "storageBlobDataContributorRoleId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]"
@@ -196,7 +196,7 @@
     {
       "type": "Microsoft.Storage/storageAccounts/providers/roleAssignments",
       "apiVersion": "2018-07-01",
-      "name": "[concat(variables('storageAccountName'), '/Microsoft.Authorization/', guid(uniqueString(concat(variables('storageAccountName'), 'readerAndDataAccess'))))]",
+      "name": "[concat(variables('storageAccountName'), '/Microsoft.Authorization/', guid(uniqueString(concat(variables('storageAccountName'), 'ReaderAndDataAccess'))))]",
       "dependsOn": [
         "[variables('storageAccountName')]",
         "[resourceId('Microsoft.Web/sites/sourcecontrols/', variables('functionAppName'), 'web')]"

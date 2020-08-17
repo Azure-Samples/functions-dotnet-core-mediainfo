@@ -6,6 +6,7 @@ products:
 - azure
 - azure-functions
 - dotnet-core
+- azure-media-services
 description: "Using MediaInfo to analyze files in Azure Storage"
 ---
 # Overview
@@ -61,7 +62,7 @@ Create a local.settings.json file (for Azure Functions) or a appsettings.json fi
 
 To quickly deploy the Sample.MediaInfo.FxnApp to Azure, hit the button below:
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fasanjabi%2Ffunctions-dotnet-core-mediainfo%2Fadd-deployment%2Finfrastructure%2Farm%2Fazuredeploy.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https%3A%2F%2Fgithub.com%2Fasanjabi%2Ffunctions-dotnet-core-mediainfo%2Fblob%2Fadd-deployment%2Finfrastructure%2Farm-templates%2Fazuredeploy.json)
 
 You will be presented with a screen similar to the image below:
 
@@ -72,7 +73,7 @@ Do the following:
 1. Create or Select a Resource Group
 1. Enter a Site Name
 1. Enter a Hosting Plan Name
-1. Hit the *Review + Create* button to validate & deploy the EventGrid Viewer Blazor application
+1. Hit the *Review + Create* button to validate & deploy the application.
 
 
 
