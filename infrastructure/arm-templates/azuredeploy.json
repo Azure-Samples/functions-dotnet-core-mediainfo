@@ -1,0 +1,223 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+
+    "appname": {
+      "type": "string",
+      "metadata": {
+        "description" :  "Name of the application"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description":  "Region to deploy your function to.  By default it is the same as your resource group."
+      }
+    },
+    "sku": {
+      "type": "string",
+      "allowedValues": [
+        "F1",
+        "D1",
+        "B1",
+        "B2",
+        "B3",
+        "S1"
+      ],
+      "defaultValue": "F1",
+      "metadata": {
+        "description": "The pricing tier for the hosting plan."
+      }
+    },
+    "mediaStorageAccountName": {
+      "type": "string",
+      "defaultValue": "mediastorage"
+    },
+    "repoURL": {
+      "type": "string",
+      "defaultValue": "https://github.com/Azure-Samples/functions-dotnet-core-mediainfo.git",
+      "metadata": {
+        "description": "The URL for the GitHub repository that contains the project to deploy."
+      }
+    },
+    "branch": {
+      "type": "string",
+      "defaultValue": "main",
+      "metadata": {
+        "description": "The branch of the GitHub repository to use."
+      }
+    }
+  },
+  "variables": {
+    "deploymentLocation": "[parameters('location')]",
+    "uniqueName": "[concat(parameters('appName'),uniqueString(resourceGroup().id))]",
+    "functionAppName": "[toLower(take(concat('func-', variables('uniqueName')), 60))]",
+    "functionHostingPlanName": "[take(concat('plan-', variables('uniqueName')), 40)]",
+    "functionStorageAccountName": "[toLower(take(concat('st', variables('uniqueName')), 24))]",
+    "functionServerFarmId": "[concat('/subscriptions/', subscription().subscriptionId,'/resourcegroups/', resourceGroup().name, '/providers/Microsoft.Web/serverfarms/', variables('functionHostingPlanName'))]",
+
+    "appInsightsName": "[take(concat('appi-', variables('uniqueName')), 255)]",
+
+    "storageAccountName": "[toLower(take(concat('st', parameters('mediaStorageAccountName') ,variables('uniqueName')), 24))]",
+
+    "readerAndDataAccessRoleId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'c12c1c16-33a1-487b-954d-41c89c60f349')]",
+    "storageBlobDataContributorRoleId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]"
+
+  },
+  "resources": [
+    {
+      "apiVersion": "2018-11-01",
+      "name": "[variables('functionAppName')]",
+      "type": "Microsoft.Web/sites",
+      "kind": "functionapp",
+      "location": "[variables('deploymentLocation')]",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "tags": {},
+      "dependsOn": [
+        "[concat('microsoft.insights/components/', variables('appInsightsName'))]",
+        "[concat('Microsoft.Web/serverfarms/', variables('functionHostingPlanName'))]",
+        "[concat('Microsoft.Storage/storageAccounts/', variables('functionStorageAccountName'))]"
+      ],
+      "properties": {
+        "name": "[variables('functionAppName')]",
+        "siteConfig": {
+          "appSettings": [
+            {
+              "name": "FUNCTIONS_EXTENSION_VERSION",
+              "value": "~3"
+            },
+            {
+              "name": "FUNCTIONS_WORKER_RUNTIME",
+              "value": "dotnet"
+            },
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(resourceId('microsoft.insights/components', variables('appInsightsName')), '2018-05-01-preview').InstrumentationKey]"
+            },
+            {
+              "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('functionStorageAccountName'), ';EndpointSuffix=', environment().suffixes.storage, ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('functionStorageAccountName')),'2019-06-01').keys[0].value)]"
+            },
+            {
+              "name": "AzureWebJobsStorage",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('functionStorageAccountName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('functionStorageAccountName')), '2019-06-01').keys[0].value,';EndpointSuffix=','core.windows.net')]"
+            },
+            {
+              "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('functionStorageAccountName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('functionStorageAccountName')), '2019-06-01').keys[0].value,';EndpointSuffix=','core.windows.net')]"
+            },
+            {
+              "name": "project",
+              "value": "src/Sample.MediaInfo.FxnApp//Sample.MediaInfo.FxnApp.csproj"
+            }
+          ]
+        },
+        "serverFarmId": "[variables('functionServerFarmId')]",
+        "clientAffinityEnabled": true
+      },
+      "resources": [
+        {
+          "apiVersion": "2019-08-01",
+          "name": "web",
+          "type": "sourcecontrols",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', variables('functionAppName'))]"
+          ],
+          "properties": {
+            "RepoUrl": "[parameters('repoURL')]",
+            "branch": "[parameters('branch')]",
+            "IsManualIntegration": true
+          }
+        }
+      ]
+    },
+    {
+      "apiVersion": "2018-02-01",
+      "name": "[variables('functionHostingPlanName')]",
+      "type": "Microsoft.Web/serverfarms",
+      "location": "[variables('deploymentLocation')]",
+      "kind": "",
+      "tags": {},
+      "dependsOn": [],
+      "properties": {
+        "name": "[variables('functionHostingPlanName')]"
+
+      },
+      "sku": {
+        "Name": "[parameters('sku')]"
+      }
+    },
+    {
+      "apiVersion": "2015-05-01",
+      "name": "[ variables('appInsightsName') ]",
+      "type": "microsoft.insights/components",
+      "location": "[variables('deploymentLocation')]",
+      "tags": {},
+      "properties": {
+        "Application_Type": "web",
+        "ApplicationId": "[variables('appInsightsName')]",
+        "Request_Source": "rest"
+      }
+    },
+    {
+      "apiVersion": "2019-06-01",
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('functionStorageAccountName')]",
+      "location": "[variables('deploymentLocation')]",
+      "tags": {},
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "properties": {
+        "supportsHttpsTrafficOnly": true
+      }
+    },
+    {
+      "apiVersion": "2019-06-01",
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('storageAccountName')]",
+      "location": "[variables('deploymentLocation')]",
+      "tags": {},
+      "dependsOn": [
+        "[concat('Microsoft.Web/sites/', variables('functionAppName'))]"
+      ],
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "properties": {
+        "supportsHttpsTrafficOnly": true
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/providers/roleAssignments",
+      "apiVersion": "2018-07-01",
+      "name": "[concat(variables('storageAccountName'), '/Microsoft.Authorization/', guid(uniqueString(concat(variables('storageAccountName'), 'ReaderAndDataAccess'))))]",
+      "dependsOn": [
+        "[variables('storageAccountName')]",
+        "[resourceId('Microsoft.Web/sites/sourcecontrols/', variables('functionAppName'), 'web')]"
+      ],
+      "properties": {
+        "roleDefinitionId": "[variables('readerAndDataAccessRoleId')]",
+        "principalId": "[reference(resourceId('Microsoft.Web/sites', variables('functionAppName')), '2019-08-01', 'Full').identity.principalId]"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/providers/roleAssignments",
+      "apiVersion": "2018-07-01",
+      "name": "[concat(variables('storageAccountName'), '/Microsoft.Authorization/', guid(uniqueString(concat(variables('storageAccountName'), 'BlobDataContributor'))))]",
+      "dependsOn": [
+        "[variables('storageAccountName')]",
+        "[resourceId('Microsoft.Web/sites/sourcecontrols/', variables('functionAppName'), 'web')]"
+      ],
+      "properties": {
+        "roleDefinitionId": "[variables('storageBlobDataContributorRoleId')]",
+        "principalId": "[reference(resourceId('Microsoft.Web/sites', variables('functionAppName')), '2019-08-01', 'Full').identity.principalId]"
+      }
+    }
+  ]
+}

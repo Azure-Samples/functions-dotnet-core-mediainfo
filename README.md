@@ -58,6 +58,25 @@ On your deployed function app instance, set:
 
 Create a local.settings.json file (for Azure Functions) or a appsettings.json file (for the console app) and set the above to test locally.  Template files for the [FunctionApp](./src/Sample.MediaInfo.FxnApp/local.settings.template.json) and [ConsoleApp](./src/Sample.MediaInfo.ConsoleApp/appsettings.template.json) have been provided.  These settings will allow the local user to log in interactively and use their identity for Azure operations, ensure they have sufficient privilege (same as the managed identity).
 
+## Quick Deployment
+
+To quickly deploy the Sample.MediaInfo.FxnApp to Azure, hit the button below:
+
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure-Samples%2Ffunctions-dotnet-core-mediainfo%2Fmain%2Finfrastructure%2Farm-templates%2Fazuredeploy.json)
+
+You will be presented with a screen similar to the image below:
+
+![Deploy to Azure](./docs/img/deploy-to-azure.png)
+
+Do the following:
+
+1. Create or Select a Resource Group
+1. Enter a Site Name
+1. Enter a Hosting Plan Name
+1. Hit the *Review + Create* button to validate & deploy the application.
+
+
+
 ## Testing
 
 ### FunctionApp
