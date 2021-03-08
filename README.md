@@ -5,7 +5,6 @@ languages:
 products:
 - azure
 - azure-functions
-- azure-media-services
 description: "Using MediaInfo to analyze files in Azure Storage"
 ---
 # Reading metadata from videos with MediaInfo library and Azure Functions
