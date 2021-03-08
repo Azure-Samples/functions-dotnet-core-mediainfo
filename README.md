@@ -5,11 +5,10 @@ languages:
 products:
 - azure
 - azure-functions
-- dotnet-core
 - azure-media-services
 description: "Using MediaInfo to analyze files in Azure Storage"
 ---
-# Overview
+# Reading metadata from videos with MediaInfo library and Azure Functions
 
 It is common in the media space to want to determine the characteristics of a media file.  In a local environment, a commonly used tool is [MediaInfoLib](https://github.com/MediaArea/MediaInfoLib) in the form of the executable program MediaInfo.
 
